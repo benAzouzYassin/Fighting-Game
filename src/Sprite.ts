@@ -1,6 +1,7 @@
 import { GRAVITY } from "./constants"
+import { renderDamage } from "./utils"
 type SpriteConstructorType = {
-    id : string
+    id: "rightPlayer" | "leftPlayer"
     position: {
         x: number
         y: number
@@ -14,16 +15,17 @@ type SpriteConstructorType = {
     width: number
 }
 
-type SwordType = { width: number, x: number , y : number  , height: number, edge : number  }
+type SwordType = { width: number, x: number, y: number, height: number }
 
 export default class Sprite {
     context; canvas;
-    velocity;position; 
+    velocity; position;
     height; width;
     isAttacking = false;
-    sword : SwordType; 
-    id;
-    constructor({ position, height, width, velocity, canvas , id }: SpriteConstructorType) {
+    sword: SwordType;
+    id: "rightPlayer" | "leftPlayer";
+    health = 100
+    constructor({ position, height, width, velocity, canvas, id }: SpriteConstructorType) {
         this.position = position
         this.context = canvas.getContext("2d")
         this.canvas = canvas
@@ -31,40 +33,49 @@ export default class Sprite {
         this.height = height
         this.width = width
         this.id = id
-        this.sword =  { width: 100 , x: 0 , y : 0  , height: 20 , edge :0  }
-        this.sword.edge = this.sword.x +  this.sword.width
+        // in the player case sword should be inverted 
+        this.sword = { width: id === "rightPlayer" ? - 100 - width : 100, x: position.x, y: position.y, height: 20 }
     }
-    attack(){
+    openSword() {
         this.isAttacking = true
-        setTimeout(()=> this.isAttacking = false , 200)
+        setTimeout(() => this.isAttacking = false, 70)
+    }
+    receiveDamage() {
+        if (this.health > 0) this.health -= 10
+        console.log(this.id , this.health)
+        renderDamage(this.id , this.health)
     }
 
     draw() {
         //draw player
-        if (this.context?.fillStyle){
-            this.context.fillStyle =  this.id ==="player" ? "green" : "red"
+        if (this.context?.fillStyle) {
+            this.context.fillStyle = this.id === "rightPlayer" ? "green" : "red"
             this.context?.fillRect(this.position.x, this.position.y, this.width, this.height)
-            if(this.isAttacking) {
-                //draw sword
+
+            //draw sword
+            if (this.isAttacking) {
                 this.sword.x = this.position.x + this.width
-                this.sword.y = this.position.y 
+                this.sword.y = this.position.y
                 this.context.fillStyle = "blue"
-                this.context.fillRect(this.sword.x , this.sword.y +20 , this.sword.width , this.sword.height )
+                this.context.fillRect(this.sword.x, this.sword.y + 20, this.sword.width, this.sword.height)
             }
-        } 
+        }
     }
     update() {
-        //handling the game ground
+        //handling the game background
         this.draw()
-        this.sword.edge = this.sword.x +  this.sword.width
+
+        // updating
         this.position.y += this.velocity.y
         this.position.x += this.velocity.x
+        this.sword.x = this.position.x
+        this.sword.y = this.position.y
 
+        // gravity handling
         if (this.position.y + this.height <= this.canvas.height) {
             this.velocity.y += GRAVITY
         } else {
             this.velocity.y = 0
         }
-
     }
 }

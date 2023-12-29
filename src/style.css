@@ -2,4 +2,134 @@
   padding:  0;
   margin: 0;
   overflow: hidden;
+  box-sizing: border-box;
+}
+body{
+  position: relative;
+}
+.game-info{
+  display: flex;
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 80px;
+  gap: 5px;
+  align-items: center;
+}
+.left-health ,.right-health{
+  position: relative;
+  height: 50px;
+  width: 45%;
+  border: 2px white solid;
+  border-radius: 2px;
+  background-color: rgb(230, 53, 53);
+}
+
+
+.timer{
+  height: 75px;
+  border-radius: 5px;
+  width: 10%;
+  background-color: black;
+  border:3px white solid;
+
+}
+
+.timer{
+padding-top: 15px;
+color: white;
+font-weight: bold;
+font-family: sans-serif;
+text-align: center;
+font-size: 1.5rem;
+}
+
+#leftPlayer-health-bars{
+  position: absolute;
+  background: rgb(113, 233, 113);
+  height: 100%;
+  width: 100%;
+  transition: all;
+  transition-duration: 500ms;
+  border-radius: 3px;
+
+} 
+#rightPlayer-health-bars{
+  position: absolute;
+  background: rgb(105, 105, 255);
+  height: 100%;
+  width: 100%;
+  transition: all;
+  transition-duration: 500ms;
+
+  border-radius: 3px;
+
+}
+.rightPlayer-100{
+  left: 0%;
+}
+.rightPlayer-90{
+  left: 10%;
+}
+.rightPlayer-80{
+  left: 20%;
+}
+.rightPlayer-70{
+  left: 30%;
+}
+.rightPlayer-60{
+  left: 40%;
+}
+.rightPlayer-50{
+  left: 50%;
+}
+.rightPlayer-40{
+  left: 60%;
+}
+.rightPlayer-30{
+  left: 70%;
+}
+.rightPlayer-20{
+  left: 80%;
+}
+.rightPlayer-10{
+  left: 90%;
+}
+.rightPlayer-0{
+  left: 100%;
+}
+.leftPlayer-100{
+  right: 0%;
+}
+.leftPlayer-90{
+  right: 10%;
+}
+.leftPlayer-80{
+  right: 20%;
+}
+.leftPlayer-70{
+  right: 30%;
+}
+.leftPlayer-60{
+  right: 40%;
+}
+.leftPlayer-50{
+  right: 50%;
+}
+.leftPlayer-40{
+  right: 60%;
+}
+.leftPlayer-30{
+  right: 70%;
+}
+.leftPlayer-20{
+  right: 80%;
+}
+.leftPlayer-10{
+  right: 90%;
+}
+.leftPlayer-0{
+  right: 100%;
 }
