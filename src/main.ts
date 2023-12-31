@@ -1,5 +1,5 @@
-import Sprite from "./Sprite"
-import { didAttack, movePlayer , startTimer  } from './utils';
+import Player from "./Player"
+import { didAttack, endGame,  startTimer  } from './utils';
 
 const canvas = document.querySelector("#game") as HTMLCanvasElement
 const context = canvas.getContext("2d")
@@ -9,22 +9,28 @@ canvas.height = window.innerHeight
 
 context?.fillRect(0, 0, canvas.width, canvas.height)
 
-const rightPlayer = new Sprite({ id: "rightPlayer", height: 300, width: 100, position: { x: 700, y: 500 }, velocity: { x: 0, y: 0 }, canvas })
-const leftPlayer = new Sprite({ id: "leftPlayer", height: 300, width: 100, position: { x: 100, y: 500 }, velocity: { x: 0, y: 0 }, canvas })
+const rightPlayer = new Player({ id: "rightPlayer", height: 300, width: 100, position: { x: 700, y: 500 }, velocity: { x: 0, y: 0 }, canvas })
+const leftPlayer = new Player({ id: "leftPlayer", height: 300, width: 100, position: { x: 100, y: 500 }, velocity: { x: 0, y: 0 }, canvas })
 
 startTimer()
 
 function gameLoop() {
-    //clearing the background
+    //clearing the background  
     if (context?.fillStyle) context.fillStyle = "black"
     context?.fillRect(0, 0, window.innerWidth, window.innerHeight)
+    //moving players
+    leftPlayer.update()
+    rightPlayer.update()
+
+    //handling damage
      didAttack(rightPlayer , leftPlayer) && leftPlayer.receiveDamage()
      didAttack(leftPlayer , rightPlayer) && rightPlayer.receiveDamage()
-
-
-    rightPlayer.update()
-    leftPlayer.update()
-
+    
+    const time = document.querySelector<HTMLDivElement>(".timer")?.innerText
+     if(time === "0") endGame("tie")
+     if(leftPlayer.dead) endGame("left player is dead")
+     if(rightPlayer.dead) endGame("right player is dead")
+     
     //keeps the game loop running
     window.requestAnimationFrame(gameLoop)
 }
@@ -34,13 +40,13 @@ window.addEventListener("keydown", (e) => {
     switch (e.key) {
         //rightPlayer cases
         case "q":
-            movePlayer(rightPlayer, { x: -8, y: 0 })
+            rightPlayer.moveLeft()
             break;
         case "z":
-            movePlayer(rightPlayer, { x: 0, y: -30 })
+            rightPlayer.jump()
             break;
         case "d":
-            movePlayer(rightPlayer, { x: 8, y: 0 })
+            rightPlayer.moveRight()
             break;
         case " ":
             rightPlayer.openSword()
@@ -48,13 +54,13 @@ window.addEventListener("keydown", (e) => {
 
         //leftPlayer cases
         case "ArrowLeft":
-            movePlayer(leftPlayer, { x: -8, y: 0 })
+            leftPlayer.moveLeft()
             break;
         case "ArrowUp":
-            movePlayer(leftPlayer, { x: 0, y: -30 })
+            leftPlayer.jump()
             break;
         case "ArrowRight":
-            movePlayer(leftPlayer, { x: 8, y: 0 })
+            leftPlayer.moveRight()
             break;
         case "ArrowDown":
             leftPlayer.openSword()
@@ -68,23 +74,23 @@ window.addEventListener("keyup", (e) => {
     switch (e.key) {
         //rightPlayer cases
         case "q":
-            movePlayer(rightPlayer, { x: 0, y: 0 })
+            rightPlayer.stop()
             break;
         case "z":
-            movePlayer(rightPlayer, { x: 0, y: 0 })
+            rightPlayer.stop()
             break;
         case "d":
-            movePlayer(rightPlayer, { x: 0, y: 0 })
+            rightPlayer.stop()
             break;
         //leftPlayer cases
         case "ArrowLeft":
-            movePlayer(leftPlayer, { x: 0, y: 0 })
+            leftPlayer.stop()
             break;
         case "ArrowUp":
-            movePlayer(leftPlayer, { x: 0, y: 0 })
+            leftPlayer.stop()
             break;
         case "ArrowRight":
-            movePlayer(leftPlayer, { x: 0, y: 0 })
+            leftPlayer.stop()
             break;
         default:
             break;

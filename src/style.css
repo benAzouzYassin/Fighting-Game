@@ -65,6 +65,12 @@ font-size: 1.5rem;
   transition-duration: 500ms;
 
   border-radius: 3px;
+}
+
+
+#game-result{
+color: white;
+font-weight: 600;
 
 }
 .rightPlayer-100{

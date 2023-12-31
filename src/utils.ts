@@ -1,18 +1,13 @@
-import Sprite from "./Sprite"
+import Player from "./Player"
 
-export function movePlayer(sprite: Sprite, newVelocity: { x: number, y: number }) {
-    sprite.velocity.y = newVelocity.y
-    sprite.velocity.x = newVelocity.x
-
-}
-
-export function didAttack(attacker: Sprite, target: Sprite) {
+export function didAttack(attacker: Player, target: Player) {
     //the if is because the player and the enemy are facing each other
     if (attacker.id === "rightPlayer") {
         return (attacker.position.y >= target.position.y //tall enough ?
             && attacker.position.x >= target.position.x //facing each other ?
             && attacker.isAttacking
-            && attacker.sword.x + attacker.sword.width - attacker.width <= target.position.x) //sword touching enemy ?
+            //adding the target width because the attacking side is in the right
+            && attacker.sword.x + attacker.sword.width + attacker.width <= target.position.x + target.width) //sword touching enemy ?
     }
     else {
         return attacker.position.y >= target.position.y //tall enough ?
@@ -23,7 +18,6 @@ export function didAttack(attacker: Sprite, target: Sprite) {
 }
 export function renderDamage(playerId : "rightPlayer" | "leftPlayer" , health : number) {
     const element = document.querySelector<HTMLDivElement>(`#${playerId}-health-bars`)
-    console.log(element)
     if(element)element.className = `${playerId}-${health}`
 }
 export function startTimer() {
@@ -36,4 +30,9 @@ export function startTimer() {
         if (counter <= 0) clearInterval(intervalId)
     }, 1000)
 
+}
+
+export function endGame(result : string) {
+    const resultElement = document.querySelector<HTMLDivElement>("#game-result")
+    if(resultElement) resultElement.innerText = result
 }
