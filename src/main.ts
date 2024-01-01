@@ -1,6 +1,8 @@
 import GameImage from "./GameImage";
 import Player from "./Player"
-import { didAttack, endGame,  startTimer  } from './utils';
+import { didAttack,  startTimer } from './utils';
+
+let isFinished = false
 
 const canvas = document.querySelector("#game") as HTMLCanvasElement
 const context = canvas.getContext("2d")
@@ -9,10 +11,10 @@ canvas.height = window.innerHeight
 
 
 context?.fillRect(0, 0, canvas.width, canvas.height)
-const background = new GameImage({imgUrl : "../assets/background.png" , canvas , height :canvas.height , width : canvas.width , position : {x :0 , y : 0 }})
-const shop = new GameImage({imgUrl : "../assets/shop.png" , canvas , height :700, width :708 , position : {x :canvas.width - 800, y : 320 } , frames  : 6 , scale : 3.8}, )
-const rightPlayer = new Player({ id: "rightPlayer",imgHeight : 140,   height: 120, width: 100, position: { x: 700, y: 500 }, velocity: { x: 0, y: 0 }, canvas, scale: 4 })
-const leftPlayer = new Player({ id: "leftPlayer", imgHeight : 140, height: 120, width: 100, position: { x: 100, y: 500 }, scale : 4, velocity: { x: 0, y: 0 }, canvas })
+const background = new GameImage({ imgUrl: "../assets/background.png", canvas, height: canvas.height, width: canvas.width, position: { x: 0, y: 0 } })
+const shop = new GameImage({ imgUrl: "../assets/shop.png", canvas, height: 700, width: 708, position: { x: canvas.width - 800, y: 320 }, frames: 6, scale: 3.8 },)
+const rightPlayer = new Player({ id: "rightPlayer", imgHeight: 140, height: 120, width: 100, position: { x: 1700, y: 500 }, velocity: { x: 0, y: 0 }, canvas, scale: 4 })
+const leftPlayer = new Player({ id: "leftPlayer", imgHeight: 140, height: 120, width: 100, position: { x: 100, y: 500 }, scale: 4, velocity: { x: 0, y: 0 }, canvas })
 
 startTimer()
 
@@ -27,77 +29,78 @@ function gameLoop() {
     rightPlayer.update()
 
     //handling damage
-     didAttack(rightPlayer , leftPlayer) && leftPlayer.receiveDamage()
-     didAttack(leftPlayer , rightPlayer) && rightPlayer.receiveDamage()
-    
-    const time = document.querySelector<HTMLDivElement>(".timer")?.innerText
-     if(time === "0") endGame("tie")
-     if(leftPlayer.dead) endGame("left player is dead")
-     if(rightPlayer.dead) endGame("right player is dead")
-     
+    didAttack(rightPlayer, leftPlayer) && leftPlayer.receiveDamage()
+    didAttack(leftPlayer, rightPlayer) && rightPlayer.receiveDamage()
+
     //keeps the game loop running
     window.requestAnimationFrame(gameLoop)
 }
 
+let lastRightPLayerPressedKey = "";
+let lastLeftPLayerPressedKey = "";
 
-window.addEventListener("keydown", (e) => {
-    switch (e.key) {
-        //rightPlayer cases
-        case "q":
-            rightPlayer.moveLeft()
-            break;
-        case "z":
-            rightPlayer.jump()
-            break;
-        case "d":
-            rightPlayer.moveRight()
-            break;
-        case " ":
-            rightPlayer.openSword()
-            break
+const movementsActions: Record<string, () => void> = {
+    "q": () => rightPlayer.moveLeft(),
+    "z": () => rightPlayer.jump(),
+    "d": () => rightPlayer.moveRight(),
+    " ": () => rightPlayer.openSword(),
+    "ArrowLeft": () => leftPlayer.moveLeft(),
+    "ArrowUp": () => leftPlayer.jump(),
+    "ArrowRight": () => leftPlayer.moveRight(),
+    "ArrowDown": () => leftPlayer.openSword(),
+};
 
-        //leftPlayer cases
-        case "ArrowLeft":
-            leftPlayer.moveLeft()
-            break;
-        case "ArrowUp":
-            leftPlayer.jump()
-            break;
-        case "ArrowRight":
-            leftPlayer.moveRight()
-            break;
-        case "ArrowDown":
-            leftPlayer.openSword()
-            break
-        default:
-            break;
-    }
-})
 
-window.addEventListener("keyup", (e) => {
-    switch (e.key) {
-        //rightPlayer cases
-        case "q":
-            rightPlayer.stop()
-            break;
-        case "z":
-            rightPlayer.stopJumping()
-            break;
-        case "d":
-            rightPlayer.stop()
-            break;
-        //leftPlayer cases
-        case "ArrowLeft":
-            leftPlayer.stop()
-            break;
-        case "ArrowUp":
-            leftPlayer.stopJumping()
-            break;
-        case "ArrowRight":
-            leftPlayer.stop()
-            break;
-        default:
-            break;
-    }
-})
+const stopMovementActions: Record<string, () => void> = {
+    "q": () => rightPlayer.stop(),
+    "z": () => rightPlayer.stopJumping(),
+    "d": () => rightPlayer.stop(),
+    "ArrowLeft": () => leftPlayer.stop(),
+    "ArrowUp": () => leftPlayer.stopJumping(),
+    "ArrowRight": () => leftPlayer.stop(),
+};
+const pressedKeys: Record<string, boolean> = {
+    "q": false,
+    "z": false,
+    "d": false,
+    " ": false,
+    "ArrowLeft": false,
+    "ArrowUp": false,
+    "ArrowRight": false,
+    "ArrowDown": false,
+}
+function handleKeypress(key: string) {
+    if (["q", "z", "d", " "].includes(key)) lastLeftPLayerPressedKey = key
+    if (["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp"].includes(key)) lastRightPLayerPressedKey = key
+
+    if (pressedKeys[key]) pressedKeys[key] = true
+    const action = movementsActions[key]
+    action()
+}
+function handleKeyup(key: string) {
+    if (["q", "z", "d", " "].includes(key) && lastLeftPLayerPressedKey === key){
+        lastLeftPLayerPressedKey = ""
+        if (pressedKeys[key]) pressedKeys[key] = false
+        const action = stopMovementActions[key]
+        action()
+    } 
+    if (["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp"].includes(key) && lastRightPLayerPressedKey === key ){
+        lastRightPLayerPressedKey = ""
+        if (pressedKeys[key]) pressedKeys[key] = false
+        const action = stopMovementActions[key]
+        action()
+    } 
+}
+
+export function finishGame(result: string) {
+    isFinished = true
+    const resultElement = document.querySelector<HTMLDivElement>("#game-result")
+    if(resultElement) resultElement.innerText = result
+}
+
+
+
+window.addEventListener("keydown", (e) => { !isFinished && handleKeypress(e.key) });
+window.addEventListener("keyup", (e) => { handleKeyup(e.key) });
+
 gameLoop()

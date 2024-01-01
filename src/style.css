@@ -48,7 +48,7 @@ font-size: 1.5rem;
 
 #leftPlayer-health-bars{
   position: absolute;
-  background: rgb(113, 233, 113);
+  background: rgb(105, 105, 255);
   height: 100%;
   width: 100%;
   transition: all;
@@ -69,8 +69,17 @@ font-size: 1.5rem;
 
 
 #game-result{
-color: white;
-font-weight: 600;
+color: rgba(245, 245, 245);
+font-weight: bolder;
+position: absolute;
+top: 45%;
+left: 50%;
+text-align: center;
+font-family: monospace;
+font-size: 3rem;
+translate: -50% -50%;
+width: 50%;
+
 
 }
 .rightPlayer-100{

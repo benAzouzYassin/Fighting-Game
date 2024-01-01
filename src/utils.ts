@@ -1,4 +1,5 @@
 import Player from "./Player"
+import { finishGame } from "./main"
 
 export function didAttack(attacker: Player, target: Player) {
     //the if is because the player and the enemy are facing each other
@@ -27,12 +28,11 @@ export function startTimer() {
     const intervalId = setInterval(() => {
         counter--
         if (timerElement) timerElement.innerText = counter.toString()
-        if (counter <= 0) clearInterval(intervalId)
+        if (counter <= 0){
+            clearInterval(intervalId)
+            finishGame("Tie!")
+
+        } 
     }, 1000)
 
-}
-
-export function endGame(result : string) {
-    const resultElement = document.querySelector<HTMLDivElement>("#game-result")
-    if(resultElement) resultElement.innerText = result
 }

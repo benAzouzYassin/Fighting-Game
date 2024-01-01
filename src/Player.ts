@@ -1,5 +1,6 @@
 import Sprite from "./Sprite";
 import { GRAVITY } from "./constants";
+import { finishGame } from "./main";
 import { renderDamage } from "./utils";
 
 type FighterConstructorType = {
@@ -35,12 +36,13 @@ export default class Player extends Sprite {
     health = 100;
     dead = false;
     jumping = false;
-    status : "idle" | "running" | "jumping" | "attacking" | "falling" = "idle";
+    status : "idle" | "running" | "jumping" | "attacking" | "falling" | "dead" = "idle";
     currentIdleFrame = 0;
     currentRunFrame = 0;
     currentJumpFrame = 0
     currentAttackFrame = 0 
     currentFallFrame = 0 
+    currentDeathFrame = 5 
     scale = 4;
     elapsedFrames = 0;
     framesHold = 5;
@@ -50,6 +52,7 @@ export default class Player extends Sprite {
     runningFrames;
     idleImgWidth;
     freezeStatus = false 
+    deathFrames
 
     constructor({
         imgHeight,
@@ -60,6 +63,7 @@ export default class Player extends Sprite {
         canvas,
         id,
         scale = 1,
+        
     }: FighterConstructorType) {
         super({ position, height, width, canvas });
         this.context = canvas.getContext("2d");
@@ -77,6 +81,7 @@ export default class Player extends Sprite {
         this.runningFrames = 8;
         this.idleImgWidth = id === "leftPlayer" ? 1800 : 1000;
         this.attackFrames =  id == "leftPlayer" ? 6 : 4;
+        this.deathFrames =  id == "leftPlayer" ? 6 : 7 ;
 
     }
 
@@ -88,12 +93,13 @@ export default class Player extends Sprite {
         setTimeout(() => {
             this.status = "idle"
             this.freezeStatus = false
-        },500 );
+        },430 );
     }
 
     receiveDamage() {
         if (this.health > 0) this.health -= 10;
         renderDamage(this.id, this.health);
+        if(this.health <=0)finishGame(this.id==="leftPlayer" ? "Right Player Won!":" Left Player Won!")
     }
 
     draw() {
@@ -104,6 +110,7 @@ export default class Player extends Sprite {
             this.handlePlayerAnimation({ status: "attacking"  , asset: "Attack1.png", assetWidth: this.id=== "leftPlayer"? 1400 : 1000, currentFrame: this.currentAttackFrame, frames:this.id=== "leftPlayer"? 6: 4})
             this.handlePlayerAnimation({ status: "jumping"  , asset: "Jump.png", assetWidth: 700 , currentFrame: this.currentJumpFrame, frames: 2})
             this.handlePlayerAnimation({ status: "falling"  , asset: "Fall.png", assetWidth: 700 , currentFrame: this.currentFallFrame, frames: 2})
+            this.handlePlayerAnimation({ status: "dead"  , asset: "Death.png", assetWidth: this.id =="leftPlayer" ? 1400 : 1600 , currentFrame: this.currentDeathFrame, frames : this.id == "leftPlayer"?  6 : 7})
             this.animate();
             this.context.fillStyle = "red";
         }
@@ -112,7 +119,10 @@ export default class Player extends Sprite {
     update() {
         // handling the game background
         this.draw();
-        if (this.health <= 0) this.dead = true;
+        if (this.health <= 0) {
+            this.dead = true;
+            this.status = "dead"
+        }
 
         // updating position
         this.position.y += this.velocity.y;
@@ -194,8 +204,12 @@ export default class Player extends Sprite {
                 this.currentAttackFrame++;
             } else {
                 this.currentAttackFrame= 0;
-            }
-            
+            }            
+            if (this.currentDeathFrame<  this.deathFrames) {
+                this.deathFrames++;
+            } else {
+                this.deathFrames= 0;
+            }            
         }
     }
 }
