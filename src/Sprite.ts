@@ -1,4 +1,4 @@
-type SpriteConstructorType = {
+export type SpriteConstructorType = {
     position: {
         x: number
         y: number
@@ -10,25 +10,21 @@ type SpriteConstructorType = {
 
 export default class Sprite {
     context; canvas;
-    position;
     height; width;
-    
+    position;
     constructor({ position, height, width, canvas }: SpriteConstructorType) {
         this.position = position
         this.context = canvas.getContext("2d")
         this.canvas = canvas
         this.height = height
         this.width = width
-        // in the player case sword should be inverted 
+
     }
 
-    draw() {
-        //draw player
-       
-    }
+    draw() { }
     update() {
-        //handling the game background
         this.draw()
-
     }
 }
+
+

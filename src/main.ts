@@ -1,3 +1,4 @@
+import GameImage from "./GameImage";
 import Player from "./Player"
 import { didAttack, endGame,  startTimer  } from './utils';
 
@@ -8,16 +9,19 @@ canvas.height = window.innerHeight
 
 
 context?.fillRect(0, 0, canvas.width, canvas.height)
-
-const rightPlayer = new Player({ id: "rightPlayer", height: 300, width: 100, position: { x: 700, y: 500 }, velocity: { x: 0, y: 0 }, canvas })
-const leftPlayer = new Player({ id: "leftPlayer", height: 300, width: 100, position: { x: 100, y: 500 }, velocity: { x: 0, y: 0 }, canvas })
+const background = new GameImage({imgUrl : "../assets/background.png" , canvas , height :canvas.height , width : canvas.width , position : {x :0 , y : 0 }})
+const shop = new GameImage({imgUrl : "../assets/shop.png" , canvas , height :700, width :708 , position : {x :canvas.width - 800, y : 320 } , frames  : 6 , scale : 3.8}, )
+const rightPlayer = new Player({ id: "rightPlayer",imgHeight : 140,   height: 120, width: 100, position: { x: 700, y: 500 }, velocity: { x: 0, y: 0 }, canvas, scale: 4 })
+const leftPlayer = new Player({ id: "leftPlayer", imgHeight : 140, height: 120, width: 100, position: { x: 100, y: 500 }, scale : 4, velocity: { x: 0, y: 0 }, canvas })
 
 startTimer()
 
 function gameLoop() {
     //clearing the background  
-    if (context?.fillStyle) context.fillStyle = "black"
-    context?.fillRect(0, 0, window.innerWidth, window.innerHeight)
+    // if (context?.fillStyle) context.fillStyle = "black"
+    // context?.fillRect(0, 0, window.innerWidth, window.innerHeight)
+    background.update()
+    shop.update()
     //moving players
     leftPlayer.update()
     rightPlayer.update()
@@ -77,7 +81,7 @@ window.addEventListener("keyup", (e) => {
             rightPlayer.stop()
             break;
         case "z":
-            rightPlayer.stop()
+            rightPlayer.stopJumping()
             break;
         case "d":
             rightPlayer.stop()
@@ -87,7 +91,7 @@ window.addEventListener("keyup", (e) => {
             leftPlayer.stop()
             break;
         case "ArrowUp":
-            leftPlayer.stop()
+            leftPlayer.stopJumping()
             break;
         case "ArrowRight":
             leftPlayer.stop()
