@@ -1,7 +1,31 @@
+import { io } from "socket.io-client";
 import GameImage from "./GameImage";
 import Player from "./Player"
 import { didAttack,  startTimer } from './utils';
 
+
+
+//online logic
+
+let gameRoom = ""
+//creating a random room
+const currentRoute = window.location.href.split("//")[1].split("/")[1]
+if(currentRoute === ""){
+    const randomUUID =  crypto.randomUUID()
+    window.location.href += randomUUID
+}else{
+    gameRoom = currentRoute
+}
+
+const socket = io("http://localhost:3000") 
+socket.on("connect",()=>{
+    socket.emit("game-room" , gameRoom)
+    socket.on("room-join" , (message)=>{
+        console.log(message)
+    })
+})
+
+//game logic
 let isFinished = false
 
 const canvas = document.querySelector("#game") as HTMLCanvasElement
