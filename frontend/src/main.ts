@@ -1,28 +1,99 @@
 import { io } from "socket.io-client";
 import GameImage from "./GameImage";
 import Player from "./Player"
-import { didAttack,  startTimer } from './utils';
+import { didAttack, startTimer } from './utils';
 
 
+let lastPressedKey = ""
+
+const movementsActions: Record<string, () => void> = {
+    "rightPlayer/q": () => rightPlayer.moveLeft(),
+    "rightPlayer/z": () => rightPlayer.jump(),
+    "rightPlayer/d": () => rightPlayer.moveRight(),
+    "rightPlayer/ ": () => rightPlayer.openSword(),
+    "leftPlayer/q": () => leftPlayer.moveLeft(),
+    "leftPlayer/z": () => leftPlayer.jump(),
+    "leftPlayer/d": () => leftPlayer.moveRight(),
+    "leftPlayer/ ": () => leftPlayer.openSword(),
+};
+
+
+const stopMovementActions: Record<string, () => void> = {
+    "rightPlayer/q": () => rightPlayer.stop(),
+    "rightPlayer/z": () => rightPlayer.stopJumping(),
+    "rightPlayer/d": () => rightPlayer.stop(),
+    "leftPlayer/q": () => leftPlayer.stop(),
+    "leftPlayer/z": () => leftPlayer.stopJumping(),
+    "leftPlayer/d": () => leftPlayer.stop(),
+};
+
+const pressedKeys: Record<string, boolean> = {
+    "q": false,
+    "z": false,
+    "d": false,
+    " ": false
+}
+
+function handleKeydown(key: string) {
+    if (["q", "z", "d", " "].includes(key)) {
+        lastPressedKey = key
+        if (pressedKeys[key]) pressedKeys[key] = true
+        const movementAction = movementsActions[`${currentSide}/${key}`]
+        socket.emit("keydown", { playerSide : currentSide , key , gameRoom})
+        movementAction()
+    }
+}
+
+function handleKeyup(key: string) {
+    if (["q", "z", "d", " "].includes(key) && lastPressedKey === key) {
+        lastPressedKey = ""
+        if (pressedKeys[key]) pressedKeys[key] = false
+        const stoppingAction = stopMovementActions[`${currentSide}/${key}`]
+        socket.emit("keyup", { playerSide : currentSide , key , gameRoom})
+        stoppingAction()
+    }
+}
+
+type MovementMessageType = {    
+    playerSide : "leftPlayer" | "rightPlayer" ,
+    key  : string , 
+    action : "keydown" | "keyup"
+}
 
 //online logic
-
 let gameRoom = ""
+let currentSide = ""
 //creating a random room
 const currentRoute = window.location.href.split("//")[1].split("/")[1]
-if(currentRoute === ""){
-    const randomUUID =  crypto.randomUUID()
+if (currentRoute === "") {
+    const randomUUID = crypto.randomUUID()
     window.location.href += randomUUID
-}else{
+} else {
     gameRoom = currentRoute
 }
 
-const socket = io("http://localhost:3000") 
-socket.on("connect",()=>{
-    socket.emit("game-room" , gameRoom)
-    socket.on("room-join" , (message)=>{
+const socket = io("http://localhost:3000")
+socket.on("connect", () => {
+    socket.emit("join-room", gameRoom)
+    socket.on("room-joined", (message) => {
         console.log(message)
     })
+    socket.on("player", (side) => {
+        currentSide = side
+    })
+    socket.on("movement" , (data:MovementMessageType )=>{
+        console.log(data)
+        if(data?.playerSide !== currentSide){
+            if(data?.action =="keydown"){
+                const movementAction = movementsActions[`${data?.playerSide}/${data?.key}`]
+                movementAction()
+            }else{
+                const stoppingAction = stopMovementActions[`${data?.playerSide}/${data?.key}`]
+                stoppingAction()
+            }
+        }    
+    })
+    socket.on("start-game" ,startTimer)
 })
 
 //game logic
@@ -40,12 +111,9 @@ const shop = new GameImage({ imgUrl: "../assets/shop.png", canvas, height: 700, 
 const rightPlayer = new Player({ id: "rightPlayer", imgHeight: 140, height: 120, width: 100, position: { x: 1700, y: 500 }, velocity: { x: 0, y: 0 }, canvas, scale: 4 })
 const leftPlayer = new Player({ id: "leftPlayer", imgHeight: 140, height: 120, width: 100, position: { x: 100, y: 500 }, scale: 4, velocity: { x: 0, y: 0 }, canvas })
 
-startTimer()
 
 function gameLoop() {
     //clearing the background  
-    // if (context?.fillStyle) context.fillStyle = "black"
-    // context?.fillRect(0, 0, window.innerWidth, window.innerHeight)
     background.update()
     shop.update()
     //moving players
@@ -60,71 +128,17 @@ function gameLoop() {
     window.requestAnimationFrame(gameLoop)
 }
 
-let lastRightPLayerPressedKey = "";
-let lastLeftPLayerPressedKey = "";
 
-const movementsActions: Record<string, () => void> = {
-    "q": () => rightPlayer.moveLeft(),
-    "z": () => rightPlayer.jump(),
-    "d": () => rightPlayer.moveRight(),
-    " ": () => rightPlayer.openSword(),
-    "ArrowLeft": () => leftPlayer.moveLeft(),
-    "ArrowUp": () => leftPlayer.jump(),
-    "ArrowRight": () => leftPlayer.moveRight(),
-    "ArrowDown": () => leftPlayer.openSword(),
-};
-
-
-const stopMovementActions: Record<string, () => void> = {
-    "q": () => rightPlayer.stop(),
-    "z": () => rightPlayer.stopJumping(),
-    "d": () => rightPlayer.stop(),
-    "ArrowLeft": () => leftPlayer.stop(),
-    "ArrowUp": () => leftPlayer.stopJumping(),
-    "ArrowRight": () => leftPlayer.stop(),
-};
-const pressedKeys: Record<string, boolean> = {
-    "q": false,
-    "z": false,
-    "d": false,
-    " ": false,
-    "ArrowLeft": false,
-    "ArrowUp": false,
-    "ArrowRight": false,
-    "ArrowDown": false,
-}
-function handleKeypress(key: string) {
-    if (["q", "z", "d", " "].includes(key)) lastLeftPLayerPressedKey = key
-    if (["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp"].includes(key)) lastRightPLayerPressedKey = key
-
-    if (pressedKeys[key]) pressedKeys[key] = true
-    const action = movementsActions[key]
-    action()
-}
-function handleKeyup(key: string) {
-    if (["q", "z", "d", " "].includes(key) && lastLeftPLayerPressedKey === key){
-        lastLeftPLayerPressedKey = ""
-        if (pressedKeys[key]) pressedKeys[key] = false
-        const action = stopMovementActions[key]
-        action()
-    } 
-    if (["ArrowLeft", "ArrowDown", "ArrowRight", "ArrowUp"].includes(key) && lastRightPLayerPressedKey === key ){
-        lastRightPLayerPressedKey = ""
-        if (pressedKeys[key]) pressedKeys[key] = false
-        const action = stopMovementActions[key]
-        action()
-    } 
-}
 
 export function finishGame(result: string) {
     isFinished = true
     const resultElement = document.querySelector<HTMLDivElement>("#game-result")
-    if(resultElement) resultElement.innerText = result
+    if (resultElement) resultElement.innerText = result
 }
 
 
 
-window.addEventListener("keydown", (e) => { !isFinished && handleKeypress(e.key) });
+window.addEventListener("keydown", (e) => { !isFinished && handleKeydown(e.key) });
 window.addEventListener("keyup", (e) => { handleKeyup(e.key) });
 
 gameLoop()

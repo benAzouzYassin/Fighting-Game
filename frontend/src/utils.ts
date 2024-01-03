@@ -21,18 +21,23 @@ export function renderDamage(playerId : "rightPlayer" | "leftPlayer" , health : 
     const element = document.querySelector<HTMLDivElement>(`#${playerId}-health-bars`)
     if(element)element.className = `${playerId}-${health}`
 }
-export function startTimer() {
-    const timerElement = document.querySelector<HTMLSpanElement>(".timer")
-    let counter = 60
 
-    const intervalId = setInterval(() => {
-        counter--
-        if (timerElement) timerElement.innerText = counter.toString()
-        if (counter <= 0){
-            clearInterval(intervalId)
-            finishGame("Tie!")
-
-        } 
-    }, 1000)
-
+//insures only one timer
+function generateStartTimer (){
+    let intervalId : null | number = null ;
+    return () => {
+        if(intervalId)clearInterval(intervalId)
+        const timerElement = document.querySelector<HTMLSpanElement>(".timer")
+        let counter = 60
+            intervalId = setInterval(() => {
+            counter--
+            if (timerElement) timerElement.innerText = counter.toString()
+            if (counter <= 0 && intervalId){
+                clearInterval(intervalId)
+                finishGame("Tie!")
+            } 
+        }, 1000)
+    }
 }
+
+export const startTimer = generateStartTimer()
